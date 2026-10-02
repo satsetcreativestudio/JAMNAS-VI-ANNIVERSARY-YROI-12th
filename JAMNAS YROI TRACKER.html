@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAMNAS VI & YROI Tracker - Twibbon Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .canvas-card {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 min-h-screen text-slate-100 font-sans">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 text-white border-b border-indigo-500/30 py-5 px-6 mb-8 shadow-2xl">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <!-- Logo Header (Tanpa Latar Belakang Biru) -->
+                <img id="headerLogoImg" src="" alt="Logo JAMNAS" class="h-14 w-auto object-contain filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)]">
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400">
+                        JAMNAS VI & YROI Tracker
+                    </h1>
+                    <p class="text-indigo-200 text-xs sm:text-sm mt-1">12th Anniversary & Musyawarah Nasional Yamaha R25 Owners Indonesia</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 pb-20">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- Left Side: Dual Canvas View (8 cols) -->
+            <div class="lg:col-span-7 bg-slate-800/80 backdrop-blur p-6 rounded-2xl border border-slate-700 shadow-xl space-y-6">
+                
+                <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                    <h2 class="text-md font-bold text-indigo-400 flex items-center gap-2">
+                        <i class="fas fa-images"></i> Pratinjau Twibbon (Feed & Story)
+                    </h2>
+                    <span class="text-xs bg-indigo-950 text-indigo-300 px-3 py-1 rounded-full border border-indigo-800">
+                        Live Dual View
+                    </span>
+                </div>
+
+                <!-- Dual Canvas Layout -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    
+                    <!-- Feed Canvas (1:1) & Controls -->
+                    <div class="flex flex-col items-center space-y-3">
+                        <span class="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                            <i class="fas fa-square text-indigo-400"></i> Format Feed (1:1)
+                        </span>
+                        <div class="canvas-card bg-slate-950 rounded-xl overflow-hidden border border-slate-700 relative w-full aspect-square flex items-center justify-center">
+                            <canvas id="canvasFeed" class="w-full h-full object-contain cursor-grab active:cursor-grabbing"></canvas>
+                        </div>
+
+                        <!-- Separate Zoom Controls for Feed -->
+                        <div id="controlsFeed" class="w-full bg-slate-900/90 p-3 rounded-xl border border-slate-700/60 opacity-50 pointer-events-none transition-opacity space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-[11px] font-medium text-slate-300 flex items-center gap-1.5">
+                                    <i class="fas fa-search-plus text-indigo-400"></i> Zoom Feed:
+                                </label>
+                                <button onclick="resetImageTransform('feed')" class="text-[10px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1">
+                                    <i class="fas fa-undo"></i> Reset
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-minus text-[10px] text-slate-500"></i>
+                                <input type="range" id="zoomRangeFeed" min="0.1" max="3" step="0.01" value="1" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                                <i class="fas fa-plus text-[10px] text-slate-500"></i>
+                            </div>
+                        </div>
+
+                        <!-- Logo disisipkan tepat di bawah Zoom Feed (Ukuran Diperbesar Sejajar dengan Zoom Story) -->
+                        <div class="w-full flex items-center justify-center pt-2">
+                            <img id="feedLogoImg" src="" alt="Logo JAMNAS VI YROI" class="h-44 sm:h-48 w-auto object-contain filter drop-shadow-[0_6px_12px_rgba(0,0,0,0.5)]">
+                        </div>
+                    </div>
+
+                    <!-- Story Canvas (9:16) & Controls -->
+                    <div class="flex flex-col items-center space-y-3">
+                        <span class="text-xs font-semibold text-slate-300 flex items-center gap-1">
+                            <i class="fas fa-mobile-alt text-purple-400"></i> Format Story (9:16)
+                        </span>
+                        <div class="canvas-card bg-slate-950 rounded-xl overflow-hidden border border-slate-700 relative w-full aspect-[9/16] flex items-center justify-center">
+                            <canvas id="canvasStory" class="w-full h-full object-contain cursor-grab active:cursor-grabbing"></canvas>
+                        </div>
+
+                        <!-- Separate Zoom Controls for Story -->
+                        <div id="controlsStory" class="w-full bg-slate-900/90 p-3 rounded-xl border border-slate-700/60 opacity-50 pointer-events-none transition-opacity space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-[11px] font-medium text-slate-300 flex items-center gap-1.5">
+                                    <i class="fas fa-search-plus text-purple-400"></i> Zoom Story:
+                                </label>
+                                <button onclick="resetImageTransform('story')" class="text-[10px] text-purple-400 hover:text-purple-300 flex items-center gap-1">
+                                    <i class="fas fa-undo"></i> Reset
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-minus text-[10px] text-slate-500"></i>
+                                <input type="range" id="zoomRangeStory" min="0.1" max="3" step="0.01" value="1" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
+                                <i class="fas fa-plus text-[10px] text-slate-500"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <p class="text-[11px] text-slate-400 text-center pt-2">💡 Tekan & tahan pada gambar di atas untuk menggeser posisi foto secara terpisah.</p>
+
+            </div>
+
+            <!-- Right Side: Form & Presensi (5 cols) -->
+            <div class="lg:col-span-5 bg-slate-800/80 backdrop-blur p-6 rounded-2xl border border-slate-700 shadow-xl space-y-5">
+                
+                <h2 class="text-md font-bold text-slate-100 border-b border-slate-700 pb-3 flex items-center gap-2">
+                    <i class="fas fa-id-card text-indigo-400"></i> Form Presensi Peserta
+                </h2>
+
+                <form id="attendanceForm" onsubmit="handleDownload(event)" class="space-y-4">
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+                            Unggah Foto Kamu <span class="text-red-400">*</span>
+                        </label>
+                        <input type="file" id="userPhotoInput" accept="image/*" required class="w-full text-xs text-slate-400 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 cursor-pointer bg-slate-900 rounded-xl border border-slate-700 p-1">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+                            Nama Lengkap <span class="text-red-400">*</span>
+                        </label>
+                        <input type="text" id="userName" required placeholder="Contoh: Budi Santoso" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 focus:outline-none focus:border-indigo-500 text-xs text-slate-100 placeholder-slate-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+                            No. WhatsApp / Email <span class="text-red-400">*</span>
+                        </label>
+                        <input type="text" id="userContact" required placeholder="Contoh: 08123456789" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 focus:outline-none focus:border-indigo-500 text-xs text-slate-100 placeholder-slate-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1.5">
+                            Chapter / Club / Regional
+                        </label>
+                        <input type="text" id="userChapter" placeholder="Contoh: YROI Chapter Jakarta" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 focus:outline-none focus:border-indigo-500 text-xs text-slate-100 placeholder-slate-500">
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="pt-2 space-y-2">
+                        <button type="submit" onclick="setDownloadMode('both')" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition text-xs flex items-center justify-center gap-2">
+                            <i class="fas fa-download"></i> Unduh Feed + Story & Absen
+                        </button>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="submit" onclick="setDownloadMode('feed')" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 px-3 rounded-xl transition text-[11px] font-medium flex items-center justify-center gap-1.5 border border-slate-600">
+                                <i class="fas fa-square text-indigo-400"></i> Feed Saja
+                            </button>
+                            <button type="submit" onclick="setDownloadMode('story')" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 py-2.5 px-3 rounded-xl transition text-[11px] font-medium flex items-center justify-center gap-1.5 border border-slate-600">
+                                <i class="fas fa-mobile-alt text-purple-400"></i> Story Saja
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Canvas Logic JavaScript -->
+    <script>
+        const canvasFeed = document.getElementById('canvasFeed');
+        const ctxFeed = canvasFeed.getContext('2d');
+        const canvasStory = document.getElementById('canvasStory');
+        const ctxStory = canvasStory.getContext('2d');
+
+        const zoomRangeFeed = document.getElementById('zoomRangeFeed');
+        const zoomRangeStory = document.getElementById('zoomRangeStory');
+        const controlsFeed = document.getElementById('controlsFeed');
+        const controlsStory = document.getElementById('controlsStory');
+
+        // Link Logo dari Google Drive
+        const logoSrc = 'https://lh3.googleusercontent.com/d/1A1ty_70F6yMb0rkIgcpmte94_8dwLlJ-';
+
+        // Set Source Logo Header & Bawah Zoom Feed
+        document.getElementById('headerLogoImg').src = logoSrc;
+        document.getElementById('feedLogoImg').src = logoSrc;
+
+        // Formats Dimensions
+        canvasFeed.width = 1080;
+        canvasFeed.height = 1080;
+        canvasStory.width = 1080;
+        canvasStory.height = 1920;
+
+        let userImg = null;
+        let frameImgFeed = new Image();
+        let frameImgStory = new Image();
+
+        // Direct Links to Google Drive Images
+        frameImgFeed.crossOrigin = "anonymous";
+        frameImgStory.crossOrigin = "anonymous";
+        frameImgFeed.src = 'https://lh3.googleusercontent.com/d/1WQU7RvvdmT70ACKmKiV11yDh4Es1RYrl';
+        frameImgStory.src = 'https://lh3.googleusercontent.com/d/1m6Y4c2zYSMlcQXfNVbbMXbqQfvmE6LqP';
+
+        // Independent Transform States for Feed & Story
+        let transformStates = {
+            feed: { x: 0, y: 0, scale: 1, isDragging: false, startX: 0, startY: 0 },
+            story: { x: 0, y: 0, scale: 1, isDragging: false, startX: 0, startY: 0 }
+        };
+
+        let downloadMode = 'both';
+        
+        // Google Apps Script Web App URL
+        let webAppUrl = 'https://script.google.com/macros/s/AKfycbyCp2mTn0r0ENqPsPy9diUyDvBX9kAdzDYJdCBKN6BwkPKnsbGSpjjwqE7aaFtOsEYc/exec';
+
+        // Render Canvas
+        function drawCanvas() {
+            drawSingleCanvas(canvasFeed, ctxFeed, frameImgFeed, transformStates.feed);
+            drawSingleCanvas(canvasStory, ctxStory, frameImgStory, transformStates.story);
+        }
+
+        function drawSingleCanvas(canvasObj, ctxObj, frameObj, state) {
+            ctxObj.clearRect(0, 0, canvasObj.width, canvasObj.height);
+
+            if (userImg) {
+                ctxObj.save();
+                ctxObj.translate(canvasObj.width / 2 + state.x, canvasObj.height / 2 + state.y);
+                ctxObj.scale(state.scale, state.scale);
+                ctxObj.drawImage(userImg, -userImg.width / 2, -userImg.height / 2);
+                ctxObj.restore();
+            } else {
+                ctxObj.fillStyle = "#0f172a";
+                ctxObj.fillRect(0, 0, canvasObj.width, canvasObj.height);
+                ctxObj.fillStyle = "#64748b";
+                ctxObj.font = "bold 28px sans-serif";
+                ctxObj.textAlign = "center";
+                ctxObj.fillText("Unggah Foto Peserta", canvasObj.width / 2, canvasObj.height / 2);
+            }
+
+            if (frameObj.complete && frameObj.naturalWidth !== 0) {
+                ctxObj.drawImage(frameObj, 0, 0, canvasObj.width, canvasObj.height);
+            }
+        }
+
+        // Upload Photo Handler
+        document.getElementById('userPhotoInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    userImg = new Image();
+                    userImg.onload = () => {
+                        resetImageTransform('feed');
+                        resetImageTransform('story');
+                        controlsFeed.classList.remove('opacity-50', 'pointer-events-none');
+                        controlsStory.classList.remove('opacity-50', 'pointer-events-none');
+                    };
+                    userImg.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Reset Transform State Per Canvas
+        function resetImageTransform(type) {
+            if (!userImg) return;
+            const targetCanvas = type === 'feed' ? canvasFeed : canvasStory;
+            const minScale = Math.max(targetCanvas.width / userImg.width, targetCanvas.height / userImg.height);
+            
+            transformStates[type].scale = minScale;
+            transformStates[type].x = 0;
+            transformStates[type].y = 0;
+
+            const slider = type === 'feed' ? zoomRangeFeed : zoomRangeStory;
+            slider.value = minScale;
+            slider.min = minScale * 0.2;
+            slider.max = minScale * 3;
+
+            drawCanvas();
+        }
+
+        zoomRangeFeed.addEventListener('input', (e) => {
+            transformStates.feed.scale = parseFloat(e.target.value);
+            drawCanvas();
+        });
+
+        zoomRangeStory.addEventListener('input', (e) => {
+            transformStates.story.scale = parseFloat(e.target.value);
+            drawCanvas();
+        });
+
+        // Independent Mouse & Touch Drag Controls
+        function setupDragControls(canvasElem, type) {
+            const state = transformStates[type];
+
+            function getCoords(e) {
+                const rect = canvasElem.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const scaleX = canvasElem.width / rect.width;
+                const scaleY = canvasElem.height / rect.height;
+                return {
+                    x: (clientX - rect.left) * scaleX,
+                    y: (clientY - rect.top) * scaleY
+                };
+            }
+
+            function startDrag(e) {
+                if (!userImg) return;
+                state.isDragging = true;
+                const coords = getCoords(e);
+                state.startX = coords.x - state.x;
+                state.startY = coords.y - state.y;
+            }
+
+            function moveDrag(e) {
+                if (!state.isDragging || !userImg) return;
+                e.preventDefault();
+                const coords = getCoords(e);
+                state.x = coords.x - state.startX;
+                state.y = coords.y - state.startY;
+                drawCanvas();
+            }
+
+            function stopDrag() {
+                state.isDragging = false;
+            }
+
+            canvasElem.addEventListener('mousedown', startDrag);
+            window.addEventListener('mousemove', moveDrag);
+            window.addEventListener('mouseup', stopDrag);
+
+            canvasElem.addEventListener('touchstart', startDrag);
+            window.addEventListener('touchmove', moveDrag, { passive: false });
+            window.addEventListener('touchend', stopDrag);
+        }
+
+        setupDragControls(canvasFeed, 'feed');
+        setupDragControls(canvasStory, 'story');
+
+        frameImgFeed.onload = drawCanvas;
+        frameImgStory.onload = drawCanvas;
+
+        function setDownloadMode(mode) {
+            downloadMode = mode;
+        }
+
+        // Handle Download & Submit Data
+        async function handleDownload(e) {
+            e.preventDefault();
+
+            if (!userImg) {
+                alert('Silakan upload foto terlebih dahulu!');
+                return;
+            }
+
+            const name = document.getElementById('userName').value;
+            const contact = document.getElementById('userContact').value;
+            const chapter = document.getElementById('userChapter').value || '-';
+
+            // Download Logic
+            if (downloadMode === 'feed' || downloadMode === 'both') {
+                downloadCanvasImage(canvasFeed, `Twibbon_JAMNAS6_Feed_${name.replace(/\s+/g, '_')}.png`);
+            }
+            if (downloadMode === 'story' || downloadMode === 'both') {
+                setTimeout(() => {
+                    downloadCanvasImage(canvasStory, `Twibbon_JAMNAS6_Story_${name.replace(/\s+/g, '_')}.png`);
+                }, 300);
+            }
+
+            // Submit Data to Google Sheets
+            if (webAppUrl) {
+                try {
+                    const formData = new FormData();
+                    formData.append('nama', name);
+                    formData.append('kontak', contact);
+                    formData.append('chapter', chapter);
+                    formData.append('format', downloadMode.toUpperCase());
+
+                    await fetch(webAppUrl, {
+                        method: 'POST',
+                        body: formData,
+                        mode: 'no-cors'
+                    });
+
+                    alert('Twibbon berhasil diunduh & Data kehadiran kamu telah tercatat!');
+                } catch (err) {
+                    console.error(err);
+                    alert('Twibbon berhasil diunduh!');
+                }
+            } else {
+                alert('Twibbon berhasil diunduh!');
+            }
+        }
+
+        function downloadCanvasImage(canvasElem, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvasElem.toDataURL('image/png');
+            link.click();
+        }
+
+        drawCanvas();
+    </script>
+</body>
+</html>
